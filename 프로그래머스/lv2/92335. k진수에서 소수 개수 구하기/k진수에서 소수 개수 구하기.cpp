@@ -1,66 +1,71 @@
 #include <string>
 #include <vector>
+#include <string>
+#include <sstream>
 #include <cmath>
 
 using namespace std;
 
+string s = "";
+
+void change(int n, int k)
+{
+    if(n/k > 0)
+    {
+        change(n/k, k);
+    }
+    
+    s+= to_string(n%k);
+}
+
+vector<string> split(string s)
+{
+    istringstream ss(s);
+    string tempBuffer;
+    vector<string> x;
+    while(getline(ss, tempBuffer,'0'))
+    {
+        x.push_back(tempBuffer);
+    }
+    
+    return x;
+}
+
+bool primeCheck(long long int& num)
+{
+    if(num < 2)
+    {
+        return false;
+    }
+    for(int i = 2;i<=sqrt(num);i++)
+    {
+        if(num%i==0)
+        {
+            return false;
+        }
+    }
+    
+    return true; //prime
+}
+
+
+
 int solution(int n, int k) {
     int answer = 0;
     
-    int quotient = n;
-    int remainder;
-    int digitCount = 0;
-    long checkNumber = 0;
-    
-    bool isPrime;
-    
-    while(quotient != 0)
+    change(n, k);
+    vector<string> x = split(s);
+    for(auto &elem : x)
     {
-        remainder = quotient % k;
-        quotient = quotient / k;
-        
-        if(remainder != 0)
-        {
-            checkNumber += pow(10, digitCount) * remainder;
-            digitCount++;
+        if(elem == ""){
+            continue;
         }
-        else
+        long long int temp = stoll(elem);
+        if(primeCheck(temp))
         {
-            isPrime = true;
-            for(long i = 2;i<= sqrt(checkNumber);i++)
-            {
-                if(checkNumber % i == 0)
-                {
-                    isPrime = false;
-                    break;
-                }
-            }
-            
-            if(isPrime && checkNumber != 0 && checkNumber != 1)
-            {
-                answer++;
-            }
-            
-            checkNumber = 0;
-            digitCount = 0;
-        }
-        
-    }
-    
-    isPrime = true;
-    for(long i = 2;i<= sqrt(checkNumber);i++)
-    {
-        if(checkNumber % i == 0)
-        {
-            isPrime = false;
-            break;
+            answer++;
         }
     }
 
-    if(isPrime && checkNumber != 0 && checkNumber != 1)
-    {
-        answer++;
-    }
-    
     return answer;
 }
