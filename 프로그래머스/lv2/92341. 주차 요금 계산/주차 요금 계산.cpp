@@ -1,133 +1,56 @@
 #include <string>
 #include <vector>
+#include <map>
 #include <sstream>
-#include <algorithm>
 #include <cmath>
-#include <iostream>
 
 using namespace std;
 
-struct carRecord{
-    string time;
-    string carNum;
-    string info;
-};
-
-bool cmp(const carRecord& a, const carRecord& b)
+int timeDiff(const string& a, const string& b)
 {
-    if(a.carNum < b.carNum)
-    {
-        return true;
-        
-    }
-    
-    if(a.carNum == b.carNum)
-    {
-        if(a.time <= b.time)
-        {
-            return true;
-        }
-    }
-    
-    return false;
+    int hour= stoi(b.substr(0,2)) - stoi(a.substr(0,2));
+    int min = stoi(b.substr(3,2)) - stoi(a.substr(3,2));
+    int totalTimeDiff = hour * 60 + min;
+    return totalTimeDiff;
 }
 
 vector<int> solution(vector<int> fees, vector<string> records) {
-    
-    vector<carRecord> recordList;
-    
-    for(const auto& record:records)
-    {
-        vector<string> x;
-        istringstream ss(record);
-        string temp;
-        char seperator = ' ';
-        
-        while(getline(ss, temp, seperator))
-        {
-            x.push_back(temp);
-        }
-        
-        recordList.push_back({x[0], x[1], x[2]});
-    }
-    
-    sort(recordList.begin(), recordList.end(), cmp);
-    
-    for(const auto& el:recordList)
-    {
-        cout<<el.carNum<<endl;
-        cout<<el.time<<endl;
-    }
-    
-    string curCar = "";
-    int prevTime = 0;
-    int totalTime = 0;
-    string lastInfo = "";
-    
     vector<int> answer;
     
-    for(const auto& record:recordList)
+    map<string, vector<string>> m;
+    
+    stringstream ss;
+    string time, carNum, status;
+    for(const auto& record:records)
     {
-        if(curCar != record.carNum && curCar != "")
-        {
-            if(lastInfo == "IN")
-            {
-                totalTime += 23 * 60 + 59 - prevTime;
-            }
-            
-            cout<<totalTime<<endl;
-            int totalFee;
-            if(totalTime <= fees[0])
-            {
-                totalFee= fees[1];
-            }
-            else
-            {
-                totalFee = fees[1] + ceil((totalTime - fees[0])/double(fees[2])) * fees[3];
-            }
-            answer.push_back(totalFee);
-            totalTime = 0;
-        }
+        ss.str(record);
+        ss>>time>>carNum>>status;
         
-        curCar = record.carNum;
-        
-        int minutes;
-        string str = record.time;
-        string hour = str.substr(0, 2);
-        string minute = str.substr(3, 2);
-
-        minutes = stoi(hour) * 60 + stoi(minute);
-        
-        if(record.info == "IN")
-        {
-            prevTime = minutes;
-            lastInfo = "IN";
-        }
-        else
-        {
-            totalTime += minutes - prevTime;
-            prevTime = 0;
-            lastInfo = "OUT";
-            
-        }
-        
+        m[carNum].push_back(time);
+        ss.clear();
     }
     
-    if(lastInfo == "IN")
+    for(auto & elem:m)
     {
-        totalTime += 23 * 60 + 59 - prevTime;
+        if(elem.second.size() & 1)
+        {
+            elem.second.push_back("23:59");
+        }
+        
+        vector<string> info = elem.second;
+        int total = 0;
+        for(int i = 0;i<info.size()-1;i+=2)
+        {
+            total += timeDiff(info[i], info[i+1]);
+        }
+        
+        int price = fees[1];
+        if(total > fees[0])
+        {
+            price += ceil((total-fees[0])/(double)fees[2]) * fees[3];
+        }
+        
+        answer.push_back(price);
     }
-
-    int totalFee;
-    if(totalTime <= fees[0])
-    {
-        totalFee= fees[1];
-    }
-    else
-    {
-        totalFee = fees[1] + ceil((totalTime - fees[0])/double(fees[2])) * fees[3];
-    }
-    answer.push_back(totalFee);
-    
     return answer;
 }
